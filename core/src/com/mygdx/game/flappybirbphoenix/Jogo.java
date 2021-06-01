@@ -2,6 +2,7 @@ package com.mygdx.game.flappybirbphoenix;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -81,6 +82,11 @@ public class Jogo extends ApplicationAdapter {
 	Rectangle pipe_top_collider;
 	Rectangle pipe_bottom_collider;
 
+	//Sounds
+	Sound hop_sound;
+	Sound hit_sound;
+	Sound points_sound;
+
 	//endregion [Variables Setup]
 
 	//At the beginning there was only darkness, and God above the sea of empty variables...
@@ -110,12 +116,23 @@ public class Jogo extends ApplicationAdapter {
 		touched = Gdx.input.justTouched();
 
 		//"Let's get started!"
-		if (touched) {
-			game_state = 1;
-			//makes birb hop at touch
-			gravity = -hop_force;
+		if (game_state == 0) {
+			if(touched) {
+				game_state = 1;
+				//makes birb hop at touch
+				gravity = -hop_force;
+				hop_sound.play();
+			}
 		}
+
 		else if(game_state == 1) {
+
+			if(touched) {
+				//makes birb hop at touch
+				gravity = -hop_force;
+				hop_sound.play();
+			}
+
 			BackgroundManager();
 			PipesManager();
 			//Rapidly God became bored. So He created challenges to make things more interesting...
@@ -128,10 +145,8 @@ public class Jogo extends ApplicationAdapter {
 		}
 		else if (game_state == 2){
 
-			if(endgame_ui_pos_y < device_height/2)
-				endgame_ui_pos_y += Gdx.graphics.getDeltaTime() * hud_anim_velocity;
 			if (points > highscore) highscore = points;
-			DrawUIEndGame();
+			DrawUIGameOver();
 			if(touched) Retry();
 		}
 
@@ -172,7 +187,10 @@ public class Jogo extends ApplicationAdapter {
 		boolean hit_bottom = Intersector.overlaps(birb_collider, pipe_bottom_collider);
 
 		//if any hit, end game state
-		if (hit_top || hit_bottom || birb_pos_y <= 0) game_state = 2;
+		if (hit_top || hit_bottom || birb_pos_y <= 0) {
+			game_state = 2;
+			hit_sound.play();
+		}
 	}
 
 	private void PointsManager() {
@@ -180,6 +198,7 @@ public class Jogo extends ApplicationAdapter {
 		if(pipes_pos_x <= birb_pos_x && !passed_pipes) {
 			points++;
 			passed_pipes = true;
+			points_sound.play();
 		}
 	}
 
@@ -209,7 +228,10 @@ public class Jogo extends ApplicationAdapter {
 		batch.end();
 	}
 
-	private void DrawUIEndGame() {
+	private void DrawUIGameOver() {
+		if(endgame_ui_pos_y < device_height/2)
+			endgame_ui_pos_y += Gdx.graphics.getDeltaTime() * hud_anim_velocity;
+
 		batch.begin();
 		//draw endgame UI
 		batch.draw(game_over_img,
@@ -219,16 +241,16 @@ public class Jogo extends ApplicationAdapter {
 				game_over_img.getHeight() * hud_size/2);
 
 		//draw retry and highscore
-		String str_highscore = "Highscore: " + String.valueOf(highscore);
+		String str_highscore = "BEST: " + String.valueOf(highscore);
 		highscore_display.draw(batch,
 				str_highscore,
-				device_width /2 - str_highscore.length() * 4,
-				endgame_ui_pos_y - 60);
-		String str_retry = "Retry?";
+				device_width /2 - str_highscore.length() * hud_size * 4,
+				endgame_ui_pos_y - 120);
+		String str_retry = "TOUCH TO TRY AGAIN";
 		highscore_display.draw(batch,
 				str_retry,
-				device_width /2 - str_retry.length() * 4,
-				endgame_ui_pos_y - 120);
+				device_width /2 - str_retry.length() * hud_size * 4,
+				endgame_ui_pos_y - 60);
 
 		batch.end();
 	}
@@ -269,11 +291,11 @@ public class Jogo extends ApplicationAdapter {
 		points_display.getData().setScale(hud_size);
 
 		retry_display = new BitmapFont();
-		retry_display.setColor(Color.GOLD);
-		retry_display.getData().setScale(hud_size);
+		retry_display.setColor(Color.LIGHT_GRAY);
+		retry_display.getData().setScale(hud_size + 1);
 
 		highscore_display = new BitmapFont();
-		highscore_display.setColor(Color.GOLD);
+		highscore_display.setColor(Color.GOLDENROD);
 		highscore_display.getData().setScale(hud_size);
 
 		//colliders
@@ -294,6 +316,11 @@ public class Jogo extends ApplicationAdapter {
 		pipes_pos_x = pipes_spawn_pos_x;
 		borders = (int) device_height /4 + (int) pipes_gap_size;
 		NewRandomPos();
+
+		//set sound files
+		hop_sound = Gdx.audio.newSound( Gdx.files.internal("som_asa.wav"));
+		hit_sound = Gdx.audio.newSound( Gdx.files.internal("som_batida.wav"));
+		points_sound = Gdx.audio.newSound( Gdx.files.internal("som_pontos.wav"));
 	}
 
 	private void NewRandomPos() {
