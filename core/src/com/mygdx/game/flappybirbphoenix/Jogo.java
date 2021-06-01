@@ -2,6 +2,7 @@ package com.mygdx.game.flappybirbphoenix;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -87,6 +88,8 @@ public class Jogo extends ApplicationAdapter {
 	Sound hit_sound;
 	Sound points_sound;
 
+	Preferences preferences;
+
 	//endregion [Variables Setup]
 
 	//At the beginning there was only darkness, and God above the sea of empty variables...
@@ -140,11 +143,17 @@ public class Jogo extends ApplicationAdapter {
 			gravity++;
 			birb_pos_y -= gravity;
 			//"I will call it 'Hell!" He said... and God thought it was a good name. Indeed...
+
 		} else if (game_state == 2) {
 
-			if (points > highscore) highscore = points;
+			HitAnim();
+
+			if (points > highscore) {
+				highscore = points;
+				preferences.putInteger("highscore", highscore);
+			}
 			DrawUIGameOver();
-			if (touched) Retry();
+			if (touched) Reset();
 		}
 
 		PointsManager();
@@ -320,6 +329,10 @@ public class Jogo extends ApplicationAdapter {
 		hop_sound = Gdx.audio.newSound(Gdx.files.internal("som_asa.wav"));
 		hit_sound = Gdx.audio.newSound(Gdx.files.internal("som_batida.wav"));
 		points_sound = Gdx.audio.newSound(Gdx.files.internal("som_pontos.wav"));
+
+		//preferences for highscore
+		preferences = Gdx.app.getPreferences("flappyBirbPhoenix");
+		highscore = preferences.getInteger("highscore", 0);
 	}
 
 	private void NewRandomPos() {
@@ -327,14 +340,21 @@ public class Jogo extends ApplicationAdapter {
 		gap_center_pos_y = random.nextInt((int) device_height - borders * 2) * 2 + borders;
 	}
 
-	private void Retry() {
+	private void Reset() {
 		game_state = 0;
 		points = 0;
 		gravity = 0;
-		//bg_offset_x = (device_width / 2) - 50;
+		bg_offset_x = 0;
 		birb_pos_y = device_height / 2;
+		birb_pos_x = (device_width / 2) -50;
 		pipes_pos_x = pipes_spawn_pos_x;
 		endgame_ui_pos_y = -100;
+	}
+
+	private void HitAnim() {
+		birb_pos_x -= Gdx.graphics.getDeltaTime() * 500;
+		gravity++;
+		birb_pos_y -= gravity;
 	}
 
 }
