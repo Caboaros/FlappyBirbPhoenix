@@ -27,7 +27,7 @@ public class Jogo extends ApplicationAdapter {
 	//HUD
 	int points = 0;
 	int highscore = 0;
-	float hud_size = 1f;
+	float hud_size = 3f;
 	int endgame_ui_pos_y = -200;
 	int hud_anim_velocity = 1600;
 	BitmapFont points_display;
@@ -57,7 +57,7 @@ public class Jogo extends ApplicationAdapter {
 	float frame = 0;
 	float birb_pos_x = -50;
 	float birb_pos_y = 0;
-	float birb_size = 0.8f;
+	float birb_size = 1.2f;
 	float birb_height;
 	float birb_width;
 
@@ -70,7 +70,7 @@ public class Jogo extends ApplicationAdapter {
 	float pipe_bottom_pos_y;
 	float pipes_height;
 	float pipes_width;
-	float pipes_size = 0.7f;
+	float pipes_size = 1.2f;
 	float pipes_gap_size = 200;
 	float gap_center_pos_y;
 	float pipes_velocity = 200;
@@ -213,21 +213,21 @@ public class Jogo extends ApplicationAdapter {
 		batch.begin();
 		//draw endgame UI
 		batch.draw(game_over_img,
-				device_width/2 - game_over_img.getWidth()/2 * screen_relative_size,
+				device_width/2 - game_over_img.getWidth()/2 * hud_size/2 * screen_relative_size,
 				endgame_ui_pos_y,
-				game_over_img.getWidth() * screen_relative_size,
-				game_over_img.getHeight() * screen_relative_size);
+				game_over_img.getWidth() * hud_size/2 * screen_relative_size,
+				game_over_img.getHeight() * hud_size/2 * screen_relative_size);
 
 		//draw retry and highscore
 		String str_highscore = "Highscore: " + String.valueOf(highscore);
 		highscore_display.draw(batch,
 				str_highscore,
-				device_width /2 - str_highscore.length() * 6 * screen_relative_size,
+				device_width /2 - str_highscore.length() * 4 * screen_relative_size,
 				endgame_ui_pos_y - 60);
 		String str_retry = "Retry?";
 		highscore_display.draw(batch,
 				str_retry,
-				device_width /2 - str_retry.length() * 6 * screen_relative_size,
+				device_width /2 - str_retry.length() * 4 * screen_relative_size,
 				endgame_ui_pos_y - 120);
 
 		batch.end();
@@ -252,17 +252,7 @@ public class Jogo extends ApplicationAdapter {
 		//get device's screen dimensions
 		device_width = Gdx.graphics.getWidth();
 		device_height = Gdx.graphics.getHeight();
-
-		//set relative size of device's screen to adapt relative sized content when drawing stuff
-		float cubic_screen = device_width * device_height;
-		float cubic_bg = bg_img.getWidth() * bg_img.getHeight();
-		screen_relative_size = cubic_screen / cubic_bg;
-		Gdx.app.log("SCREEN RELATIVE SIZE: ", String.valueOf(screen_relative_size));
-		//set all screen relative sizes
-		hud_size *= screen_relative_size;
-		birb_size *= screen_relative_size;
-		pipes_size *= screen_relative_size;
-		//pipes_gap_size *= screen_relative_size;
+		//AdaptativeScreen();
 
 		//set birb texture size
 		birb_width = birb_frames[(int) frame].getWidth() * birb_size;
@@ -272,7 +262,7 @@ public class Jogo extends ApplicationAdapter {
 		birb_pos_x = (device_width/2) + birb_pos_x;
 		birb_pos_y = device_height/2;
 
-		//utils & HUD
+		//utils & UI
 		random = new Random();
 		points_display = new BitmapFont();
 		points_display.setColor(Color.GOLD);
@@ -341,9 +331,23 @@ public class Jogo extends ApplicationAdapter {
 		pipes_velocity = 200;
 	}
 
-//	private float Centralize(Texture tx, BitmapFont bmpf){
-//		float pos = 0;
-//
-//		return pos;
-//	}
+	//MAYBE ONE DAY...
+/*	private void AdaptativeScreen() {
+		//set relative size of device's screen to adapt relative sized content when drawing stuff
+		float cubic_screen = device_width * device_height;
+		float cubic_bg = bg_img.getWidth() * bg_img.getHeight();
+		screen_relative_size = cubic_screen / cubic_bg;
+		Gdx.app.log("SCREEN RELATIVE SIZE: ", String.valueOf(screen_relative_size));
+		//set all screen relative sizes
+		hud_size *= screen_relative_size;
+		birb_size *= screen_relative_size;
+		pipes_size *= screen_relative_size;
+		//pipes_gap_size *= screen_relative_size;
+	}
+
+	private float Centralize(Texture tx, BitmapFont bmpf){
+		float pos = 0;
+
+		return pos;
+	}*/
 }
