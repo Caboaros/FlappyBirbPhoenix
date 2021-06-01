@@ -12,7 +12,7 @@ public class Jogo extends ApplicationAdapter {
 	Texture bg_img; //backgorund
 
 	Texture[] birb_frames;
-	int frame = 0;
+	float frame = 0;
 
 	//device dimensions
 	private float device_width;
@@ -62,17 +62,17 @@ public class Jogo extends ApplicationAdapter {
 
 	private void BirbManager() {
 		//draw birb using offsets & gravity
-		batch.draw(birb_frames[frame],
+		batch.draw(birb_frames[(int) frame],
 				(device_width /2) + birb_offset_x,
 				(device_height /2) + birb_offset_y - gravity,
-				birb_frames[frame].getWidth() * birb_size,
-				birb_frames[frame].getHeight() * birb_size);
+				birb_frames[(int) frame].getWidth() * birb_size,
+				birb_frames[(int) frame].getHeight() * birb_size);
 
 		gravity++;
-		frame++;
-		if(frame >= birb_frames.length)
-			frame = 0;
 
+		frame += Gdx.graphics.getDeltaTime() * 10;
+		if(frame > birb_frames.length)
+			frame = 0;
 	}
 
 	private void BackgroundManager() {
