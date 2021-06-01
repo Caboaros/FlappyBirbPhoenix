@@ -14,7 +14,7 @@ import com.badlogic.gdx.math.Rectangle;
 import java.util.Random;
 
 public class Jogo extends ApplicationAdapter {
-
+	//region [Variables Setup]
 	//btach
 	SpriteBatch batch;
 
@@ -26,10 +26,13 @@ public class Jogo extends ApplicationAdapter {
 	//HUD points
 	int points = 0;
 	BitmapFont points_display;
-	int hud_size = 4;
+	int hud_size = 3;
 
 	//logic utils
 	boolean passed_pipes = false;
+	boolean is_dead = true;
+	boolean touched = false;
+	int game_state = 0;
 	Random random;
 
 	//physics
@@ -44,10 +47,10 @@ public class Jogo extends ApplicationAdapter {
 
 	//birb textures, index, position and size controls
 	Texture[] birb_frames;
-	float birb_anim_velocity = 10;
+	float birb_anim_velocity = 15;
 	float frame = 0;
-	float birb_offset_x = -50;
-	float birb_offset_y = 0;
+	float birb_pos_x = -50;
+	float birb_pos_y = 0;
 	float birb_size = 1.2f;
 	float birb_height;
 	float birb_width;
@@ -71,6 +74,7 @@ public class Jogo extends ApplicationAdapter {
 	Circle birb_collider;
 	Rectangle pipe_top_collider;
 	Rectangle pipe_bottom_collider;
+	//endregion [Variables Setup]
 
 	//At the beginning there was only darkness, and God above the sea of empty variables...
 	//And then, He has spoken: "Let there be light!"
@@ -83,7 +87,6 @@ public class Jogo extends ApplicationAdapter {
 
 	//"Let there be things to see" ...And so things popped up at view and started to move.
 	//God saw it was good, so He wanted to play.
-	//"Let me touch it." ...And so He used His finger to hop a birb around.
 	@Override
 	public void render () {
 		DrawTextures();
@@ -94,15 +97,28 @@ public class Jogo extends ApplicationAdapter {
 	public void dispose () {
 
 	}
-
+	//"Let me touch it." ...And so He used His finger to hop a birb around.
 	private void GameStateManager(){
-		BackgroundManager();
-		BirbManager();
-		TouchListener();
-		//Rapidly God became bored, so He created challenges to make things more interesting...
-		//"I will call it 'Hell!" He said it so, and God thought it was a good name. Indeed...
-		PipesManager();
-		CollisionDetection();
+		touched = Gdx.input.justTouched();
+		if (touched) {
+			game_state = 1;
+			//makes birb hop at touch
+			gravity = -hop_force;
+		}
+		else if(game_state == 1) {
+			BackgroundManager();
+			PipesManager();
+			//Rapidly God became bored. So He created challenges to make things more interesting...
+			CollisionDetection();
+
+			//gravity gradually increases the gravity of the situation
+			gravity++;
+			birb_pos_y -= gravity;
+			//"I will call it 'Hell!" He said... and God thought it was a good name. Indeed...
+		}
+		else if (game_state == 2){
+
+		}
 		PointsManager();
 	}
 
@@ -112,19 +128,11 @@ public class Jogo extends ApplicationAdapter {
 		if(bg_offset_x < -device_width) bg_offset_x = 0;
 	}
 
-	private void BirbManager() {
-		//gravity gradually increases
-		gravity++;
-	}
-
-	private void TouchListener() {
-		//makes birb hop at touch
-		boolean touched = Gdx.input.justTouched();
-		if(Gdx.input.justTouched()) gravity = -hop_force;
-		if(birb_offset_y > 0 || touched) birb_offset_y -= gravity;
-	}
-
 	private void PipesManager() {
+		//set pipes y position according to gap center
+		pipe_top_pos_y = gap_center_pos_y + pipes_gap_size;
+		pipe_bottom_pos_y = gap_center_pos_y - pipes_gap_size - pipes_height;
+
 		//move pipes
 		pipes_pos_x -= Gdx.graphics.getDeltaTime() * pipes_velocity;
 
@@ -139,55 +147,26 @@ public class Jogo extends ApplicationAdapter {
 	private void CollisionDetection(){
 		//set colliders positions
 		float r = birb_collider.radius;
-		birb_collider.setPosition(birb_offset_x + r, birb_offset_y + r);
+		birb_collider.setPosition(birb_pos_x + r, birb_pos_y + r);
 		pipe_top_collider.setPosition(pipes_pos_x, pipe_top_pos_y);
-		pipe_bottom_collider.setPosition(pipe_bottom_pos_y, pipes_pos_x);
+		pipe_bottom_collider.setPosition(pipes_pos_x, pipe_bottom_pos_y);
 
 		boolean hit_top = Intersector.overlaps(birb_collider, pipe_top_collider);
 		boolean hit_bottom = Intersector.overlaps(birb_collider, pipe_bottom_collider);
 
-		if (hit_top || hit_bottom || birb_offset_y <= 0){
+		if (hit_top || hit_bottom || birb_pos_y <= 0){
 			Gdx.app.log("Log", "HIT");
+			Die();
 		}
 
 	}
 
 	private void PointsManager() {
-		if(pipes_pos_x <= birb_offset_x && !passed_pipes) {
+		//passed trough pipes? **gain points!**
+		if(pipes_pos_x <= birb_pos_x && !passed_pipes) {
 			points++;
 			passed_pipes = true;
 		}
-	}
-
-	private void DrawTextures() {
-		batch.begin();
-		DrawBackground();
-		DrawPipes();
-		DrawBirb();
-		DrawPoints();
-		batch.end();
-	}
-
-	private void DrawBackground() {
-		//draw bg1
-		batch.draw(bg_img, bg_offset_x, bg_offset_y, device_width, device_height);
-		//draw bg2
-		batch.draw(bg_img, bg_offset_x + device_width, bg_offset_y, device_width, device_height);
-	}
-
-	private void DrawPipes() {
-		//set pipes y position according to gap center
-		pipe_top_pos_y = gap_center_pos_y + pipes_gap_size;
-		pipe_bottom_pos_y = gap_center_pos_y - pipes_gap_size - pipes_height;
-
-		//draw pipes
-		batch.draw(pipe_top, pipes_pos_x, pipe_top_pos_y, pipes_width, pipes_height);
-		batch.draw(pipe_bottom, pipes_pos_x, pipe_bottom_pos_y, pipes_width, pipes_height);
-	}
-
-	private void DrawBirb() {
-		//draw birb using offsets & gravity
-		batch.draw(birb_frames[(int) frame], birb_offset_x, birb_offset_y - gravity, birb_width, birb_height);
 
 		//sync birb anim frames
 		frame += Gdx.graphics.getDeltaTime() * birb_anim_velocity;
@@ -195,8 +174,24 @@ public class Jogo extends ApplicationAdapter {
 			frame = 0;
 	}
 
-	private void DrawPoints() {
+	private void DrawTextures() {
+		batch.begin();
+
+		//draw bg1 & bg2
+		batch.draw(bg_img, bg_offset_x, bg_offset_y, device_width, device_height);
+		batch.draw(bg_img, bg_offset_x + device_width, bg_offset_y, device_width, device_height);
+
+		//draw pipes
+		batch.draw(pipe_top, pipes_pos_x, pipe_top_pos_y, pipes_width, pipes_height);
+		batch.draw(pipe_bottom, pipes_pos_x, pipe_bottom_pos_y, pipes_width, pipes_height);
+
+		//draw birb using offsets & gravity
+		batch.draw(birb_frames[(int) frame], birb_pos_x, birb_pos_y - gravity, birb_width, birb_height);
+
+		//draw points
 		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100);
+
+		batch.end();
 	}
 
 	private void InitializeTextures() {
@@ -222,8 +217,8 @@ public class Jogo extends ApplicationAdapter {
 		birb_height = birb_frames[(int) frame].getHeight() * birb_size;
 
 		//set birb starting point
-		birb_offset_x= (device_width/2) + birb_offset_x;
-		birb_offset_y = device_height/2;
+		birb_pos_x = (device_width/2) + birb_pos_x;
+		birb_pos_y = device_height/2;
 
 		//utils & HUD
 		random = new Random();
@@ -241,8 +236,8 @@ public class Jogo extends ApplicationAdapter {
 		birb_collider.setRadius(birb_width/2);
 		pipes_width = pipe_top.getWidth() * pipes_size;
 		pipes_height = pipe_top.getHeight() * pipes_size;
-		pipe_top_collider.setSize(pipes_width, pipes_size);
-		pipe_bottom_collider.setSize(pipes_width, pipes_size);
+		pipe_top_collider.setSize(pipes_width, pipes_height);
+		pipe_bottom_collider.setSize(pipes_width, pipes_height);
 
 		//set pipes initial position
 		pipes_spawn_pos_x = device_width + pipes_width;
@@ -252,7 +247,11 @@ public class Jogo extends ApplicationAdapter {
 	}
 
 	private void NewRandomPos() {
-		//define limits for pipes
+		//define new random spawn position in y, with screen spawning limits using ***MAGIC***
 		gap_center_pos_y = random.nextInt((int) device_height - borders * 2) * 2 + borders;
+	}
+
+	private void Die(){
+		game_state = 0;
 	}
 }
