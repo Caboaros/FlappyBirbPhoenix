@@ -330,8 +330,15 @@ public class Jogo extends ApplicationAdapter {
 
 	private void Retry(){
 		//ResetVariables();
-		InitializeObjects();
-		InitializeTextures();
+		//InitializeObjects();
+		//InitializeTextures();
+		game_state = 0;
+		points = 0;
+		gravity = 0;
+		bg_offset_x = (device_width/2) -50;
+		birb_pos_y = device_height/2;
+		pipes_pos_x = pipes_spawn_pos_x;
+		endgame_ui_pos_y = -100;
 
 	}
 
