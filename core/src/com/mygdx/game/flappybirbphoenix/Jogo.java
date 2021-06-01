@@ -365,6 +365,7 @@ public class Jogo extends ApplicationAdapter {
 
 	private void Reset() {
 		game_state = 0;
+		passed_pipes = false;
 		points = 0;
 		gravity = 0;
 		bg_offset_x = 0;
