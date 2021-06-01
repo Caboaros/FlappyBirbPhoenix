@@ -204,7 +204,7 @@ public class Jogo extends ApplicationAdapter {
 		batch.draw(birb_frames[(int) frame], birb_pos_x, birb_pos_y - gravity, birb_width, birb_height);
 
 		//draw points
-		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100 *screen_relative_size);
+		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100);
 
 		batch.end();
 	}
@@ -213,21 +213,21 @@ public class Jogo extends ApplicationAdapter {
 		batch.begin();
 		//draw endgame UI
 		batch.draw(game_over_img,
-				device_width/2 - game_over_img.getWidth()/2 * hud_size/2 * screen_relative_size,
+				device_width/2 - game_over_img.getWidth()/2 * hud_size/2,
 				endgame_ui_pos_y,
-				game_over_img.getWidth() * hud_size/2 * screen_relative_size,
-				game_over_img.getHeight() * hud_size/2 * screen_relative_size);
+				game_over_img.getWidth() * hud_size/2,
+				game_over_img.getHeight() * hud_size/2);
 
 		//draw retry and highscore
 		String str_highscore = "Highscore: " + String.valueOf(highscore);
 		highscore_display.draw(batch,
 				str_highscore,
-				device_width /2 - str_highscore.length() * 4 * screen_relative_size,
+				device_width /2 - str_highscore.length() * 4,
 				endgame_ui_pos_y - 60);
 		String str_retry = "Retry?";
 		highscore_display.draw(batch,
 				str_retry,
-				device_width /2 - str_retry.length() * 4 * screen_relative_size,
+				device_width /2 - str_retry.length() * 4,
 				endgame_ui_pos_y - 120);
 
 		batch.end();
@@ -266,15 +266,15 @@ public class Jogo extends ApplicationAdapter {
 		random = new Random();
 		points_display = new BitmapFont();
 		points_display.setColor(Color.GOLD);
-		points_display.getData().setScale(hud_size * screen_relative_size);
+		points_display.getData().setScale(hud_size);
 
 		retry_display = new BitmapFont();
 		retry_display.setColor(Color.GOLD);
-		retry_display.getData().setScale(hud_size * screen_relative_size);
+		retry_display.getData().setScale(hud_size);
 
 		highscore_display = new BitmapFont();
 		highscore_display.setColor(Color.GOLD);
-		highscore_display.getData().setScale(hud_size * screen_relative_size);
+		highscore_display.getData().setScale(hud_size);
 
 		//colliders
 		shapeRenderer = new ShapeRenderer();
@@ -302,34 +302,12 @@ public class Jogo extends ApplicationAdapter {
 	}
 
 	private void Retry(){
-		ResetVariables();
+		//ResetVariables();
 		InitializeObjects();
 		InitializeTextures();
-		ResetVariables();
 
 	}
 
-	private void ResetVariables() {
-		points = 0;
-		endgame_ui_pos_y = -200;
-		hud_anim_velocity = 1200;
-		passed_pipes = false;
-		touched = false;
-		game_state = 0;
-		gravity = 0;
-		hop_force = 20;
-		bg_offset_x = 0;
-		bg_offset_y = 0;
-		bg_velocity = 100;
-		birb_anim_velocity = 15;
-		frame = 0;
-		birb_pos_x = -50;
-		birb_pos_y = 0;
-		birb_size = 0.8f;
-		pipes_size = 0.7f;
-		pipes_gap_size = 200;
-		pipes_velocity = 200;
-	}
 
 	//MAYBE ONE DAY...
 /*	private void AdaptativeScreen() {
