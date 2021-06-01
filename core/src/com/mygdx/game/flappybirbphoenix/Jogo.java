@@ -19,13 +19,13 @@ public class Jogo extends ApplicationAdapter {
 	private float device_height;
 
 	//birb position and size controls
-	int birb_offset_x = -50;
-	int birb_offset_y = 0;
+	float birb_offset_x = -50;
+	float birb_offset_y = 0;
 	float birb_size = 1;
 
 	//background position controls
-	int bg_offset_x = 0;
-	int bg_offset_y = 0;
+	float bg_offset_x = 0;
+	float bg_offset_y = 0;
 
 	//physics
 	float gravity = 0;
@@ -48,23 +48,26 @@ public class Jogo extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-
 		batch.begin();
 
 		BackgroundManager();
 		BirbManager();
-
-		//move bg
-		bg_offset_x--;
+		TouchListener();
 
 		batch.end();
+	}
+
+	private void TouchListener() {
+		boolean touched = Gdx.input.justTouched();
+		if(Gdx.input.justTouched()) gravity = -25;
+		if(birb_offset_y > 0 || touched) birb_offset_y -= gravity;
 	}
 
 	private void BirbManager() {
 		//draw birb using offsets & gravity
 		batch.draw(birb_frames[(int) frame],
 				(device_width /2) + birb_offset_x,
-				(device_height /2) + birb_offset_y - gravity,
+				birb_offset_y - gravity,
 				birb_frames[(int) frame].getWidth() * birb_size,
 				birb_frames[(int) frame].getHeight() * birb_size);
 
@@ -78,17 +81,23 @@ public class Jogo extends ApplicationAdapter {
 	private void BackgroundManager() {
 		//draw bg1
 		batch.draw(bg_img,
-				0 + bg_offset_x,
-				0 + bg_offset_y,
+				bg_offset_x,
+				bg_offset_y,
 				device_width,
 				device_height);
 
 		//draw bg2
 		batch.draw(bg_img,
-				0 + bg_offset_x + device_height,
-				0 + bg_offset_y,
+				bg_offset_x + device_width,
+				bg_offset_y,
 				device_width,
 				device_height);
+
+		//move bg
+		bg_offset_x--;
+		if(bg_offset_x < -device_width)
+			bg_offset_x = 0;
+
 	}
 
 	@Override
