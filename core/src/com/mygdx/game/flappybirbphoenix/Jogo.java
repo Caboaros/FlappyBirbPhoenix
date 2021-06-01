@@ -63,7 +63,7 @@ public class Jogo extends ApplicationAdapter {
 	float birb_size = 1.2f;
 	float birb_height;
 	float birb_width;
-	float birb_rot = 1;
+	float birb_rot = 0;
 
 	//pipes textures, position, size and gap controls
 	Texture pipe_top;
@@ -74,10 +74,10 @@ public class Jogo extends ApplicationAdapter {
 	float pipe_bottom_pos_y;
 	float pipes_height;
 	float pipes_width;
-	float pipes_size = 1.2f;
-	float pipes_gap_size = 200;
+	float pipes_size = 1.1f;
+	float pipes_gap_size = 175;
 	float gap_center_pos_y;
-	float pipes_velocity = 200;
+	float pipes_velocity = 250;
 
 	//colliders
 	ShapeRenderer shapeRenderer;
@@ -122,30 +122,15 @@ public class Jogo extends ApplicationAdapter {
 
 		//"Let's get started!"
 		if (game_state == 0) {
-			if (touched) {
-				game_state = 1;
-				//makes birb hop at touch
-				gravity = -hop_force;
-				hop_sound.play();
-			}
+			TouchListener();
 		} else if (game_state == 1) {
-
-			if (touched) {
-				//makes birb hop at touch
-				gravity = -hop_force;
-				hop_sound.play();
-			}
-
+			TouchListener();
 			BackgroundManager();
 			PipesManager();
 			//Rapidly God became bored. So He created challenges to make things more interesting...
 			CollisionDetection();
-
-			//gravity gradually increases the gravity of the situation
-			gravity++;
-			birb_pos_y -= gravity;
 			//"I will call it 'Hell!" He said... and God thought it was a good name. Indeed...
-
+			GravityFactor();
 		} else if (game_state == 2) {
 
 			HitAnim();
@@ -160,6 +145,32 @@ public class Jogo extends ApplicationAdapter {
 
 		PointsManager();
 		BirbAnim();
+	}
+
+	private void GravityFactor() {
+		//gravity gradually increases the gravity of the situation
+		gravity++;
+		birb_pos_y -= gravity;
+		//birb points down when falling
+		birb_rot -= gravity * 0.7f;
+		//limits birb's rotation
+		if(birb_rot > 30)
+			birb_rot = 30;
+		if(birb_rot < -45)
+			birb_rot = -45;
+	}
+
+
+	//makes birb *HOP* *HOP* *HOP* at touch
+	private void TouchListener() {
+		if (touched) {
+			game_state = 1;
+			//adds force up
+			gravity = -hop_force;
+			//points birb up when hopping
+			birb_rot += Gdx.graphics.getDeltaTime() * 1600;
+			hop_sound.play();
+		}
 	}
 
 	private void BackgroundManager() {
@@ -359,16 +370,15 @@ public class Jogo extends ApplicationAdapter {
 		bg_offset_x = 0;
 		birb_pos_y = device_height / 2;
 		birb_pos_x = (device_width / 2) -50;
-		birb_rot = 1;
+		birb_rot = 0;
 		pipes_pos_x = pipes_spawn_pos_x;
 		endgame_ui_pos_y = -100;
 	}
 
 	private void HitAnim() {
 		birb_pos_x -= Gdx.graphics.getDeltaTime() * 500;
-		birb_rot -= Gdx.graphics.getDeltaTime() * 100;
-		gravity++;
-		birb_pos_y -= gravity;
+		birb_rot -= Gdx.graphics.getDeltaTime() * 200;
+		GravityFactor();
 	}
 
 }
