@@ -9,7 +9,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
+
+import org.omg.CORBA.Bounds;
 
 import java.util.Random;
 
@@ -45,7 +46,7 @@ public class Jogo extends ApplicationAdapter {
 	float frame = 0;
 	float birb_offset_x = -50;
 	float birb_offset_y = 0;
-	float birb_size = 1;
+	float birb_size = 1.2f;
 	float birb_height;
 	float birb_width;
 
@@ -57,8 +58,9 @@ public class Jogo extends ApplicationAdapter {
 	float pipes_pos_y;
 	float pipes_height;
 	float pipes_width;
-	float pipes_size = 1;
-	float pipes_gap_size = 350;
+	float pipes_size = 1f;
+	float pipes_gap_size = 200;
+	float gap_center_pos_y;
 
 	//colliders
 	ShapeRenderer shapeRenderer;
@@ -139,24 +141,23 @@ public class Jogo extends ApplicationAdapter {
 	}
 
 	private void PipesManager() {
-
 		//draw top pipe
-		batch.draw(pipe_top,
-				pipes_pos_x,
-				pipes_pos_y + pipes_gap_size,
-				pipes_width,
-				pipes_height);
+		pipes_pos_y = gap_center_pos_y + pipes_gap_size;
+		batch.draw(pipe_top, pipes_pos_x, pipes_pos_y, pipes_width, pipes_height);
 
 		//draw bottom pipe
-		batch.draw(pipe_bottom,
-				pipes_pos_x,
-				pipes_pos_y - pipes_gap_size - pipes_height,
-				pipes_width,
-				pipes_height);
+		pipes_pos_y = gap_center_pos_y - pipes_gap_size - pipes_height;
+		batch.draw(pipe_bottom, pipes_pos_x, pipes_pos_y, pipes_width, pipes_height);
 
 		//move pipes
-		pipes_pos_x--;
-		if(pipes_pos_x < -pipes_width) pipes_pos_x = pipes_spawn_pos_x;
+		pipes_pos_x -= 2;
+
+		//if pipes are out of sight, loop back
+		if(pipes_pos_x < -pipes_width) {
+			pipes_pos_x = pipes_spawn_pos_x;
+			NewRandomPosY();
+		}
+
 	}
 
 	private void InitializeTextures() {
@@ -207,7 +208,12 @@ public class Jogo extends ApplicationAdapter {
 		//set pipes initial position
 		pipes_spawn_pos_x = device_width + pipes_width;
 		pipes_pos_x = pipes_spawn_pos_x;
-		pipes_pos_y = device_height - (device_height/2);
+		NewRandomPosY();
+	}
 
+	private void NewRandomPosY() {
+		//define limits for pipes
+		int borders = (int) device_height /4 + (int) pipes_gap_size/2;
+		gap_center_pos_y = random.nextInt((int) device_height - borders) + borders;
 	}
 }
