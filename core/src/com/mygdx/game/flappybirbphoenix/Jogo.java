@@ -4,19 +4,34 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Rectangle;
+
+import java.util.Random;
 
 public class Jogo extends ApplicationAdapter {
-	//textures & btach variables
-	SpriteBatch batch;
-	Texture bg_img; //backgorund
 
-	//birb textures for anim
+	//btach
+	SpriteBatch batch;
+
+	//backgorund
+	Texture bg_img;
+
+	//birb textures and frame index
 	Texture[] birb_frames;
 	float frame = 0;
 
+	//pipes
+	Texture pipe_top;
+	Texture pipe_bottom;
+	float pipes_pos_x;
+	float pipes_pos_y;
+	float pipes_gap_size;
+
 	//device dimensions
-	private float device_width;
-	private float device_height;
+	float device_width;
+	float device_height;
 
 	//birb position and size controls
 	float birb_offset_x = -50;
@@ -30,13 +45,30 @@ public class Jogo extends ApplicationAdapter {
 	float bg_offset_y = 0;
 
 	//physics
-	float gravity = 0;
+	int gravity = 0;
 
+	//colliders
+	ShapeRenderer shapeRenderer;
+	Circle birb_collider;
+	Rectangle pipe_top_collider;
+	Rectangle pipe_bottom_collier;
+
+	//logic utils
+	boolean passed_pipes = false;
+	Random random;
+
+	//At the beginning there was only darkness, and God above the sea of empty variables...
+	//And then, He has spoken: "Let there be light!"
+	//So everything was initialized, became clear, and ready to rock!
 	@Override
 	public void create () {
-		InitializeEverything();
+		InitializeTextures();
+		InitializeObjects();
 	}
 
+	//"Let there be things to see" ...And so things popped up at view and started to moving around.
+	//God saw it was good, so He wanted to play.
+	//"Let me touch it." ...And so He used His finger to hop things at will.
 	@Override
 	public void render () {
 		batch.begin();
@@ -81,25 +113,32 @@ public class Jogo extends ApplicationAdapter {
 		if(bg_offset_x < -device_width) bg_offset_x = 0;
 	}
 
-	private void InitializeEverything() {
-		//initialize batch & textures
-		batch = new SpriteBatch();
+	private void InitializeTextures() {
 		bg_img = new Texture("fundo.png");
 		birb_frames = new Texture[3];
 		birb_frames[0] = new Texture("passaro2.png");
 		birb_frames[1] = new Texture("passaro2.png");
 		birb_frames[2] = new Texture("passaro3.png");
+	}
 
-		//get actual device dimensions
+	private void InitializeObjects() {
+		random = new Random();
+
+		//batch things to render
+		batch = new SpriteBatch();
+
+		//get device's screen dimensions
 		device_width = Gdx.graphics.getWidth();
 		device_height = Gdx.graphics.getHeight();
+
+		//set birb texture size
+		birb_width = birb_frames[(int) frame].getWidth() * birb_size;
+		birb_height = birb_frames[(int) frame].getHeight() * birb_size;
 
 		//set birb starting point
 		birb_offset_x= (device_width/2) + birb_offset_x;
 		birb_offset_y = device_height/2;
 
-		//set birb texture size
-		birb_width = birb_frames[(int) frame].getWidth() * birb_size;
-		birb_height = birb_frames[(int) frame].getHeight() * birb_size;
+
 	}
 }
