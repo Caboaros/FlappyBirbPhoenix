@@ -2,11 +2,14 @@ package com.mygdx.game.flappybirbphoenix;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 import java.util.Random;
 
@@ -15,47 +18,53 @@ public class Jogo extends ApplicationAdapter {
 	//btach
 	SpriteBatch batch;
 
-	//backgorund
-	Texture bg_img;
-
-	//birb textures and frame index
-	Texture[] birb_frames;
-	float frame = 0;
-
-	//pipes
-	Texture pipe_top;
-	Texture pipe_bottom;
-	float pipes_pos_x;
-	float pipes_pos_y;
-	float pipes_gap_size;
-
-	//device dimensions
+	//device's screen dimensions
 	float device_width;
 	float device_height;
 
-	//birb position and size controls
+	//HUD points
+	int points = 0;
+	BitmapFont points_display;
+	int hud_size = 4;
+
+	//logic utils
+	boolean passed_pipes = false;
+	Random random;
+
+	//physics
+	int gravity = 0;
+	int hop_force = 20;
+
+	//backgorund texture and position controls
+	Texture bg_img;
+	float bg_offset_x = 0;
+	float bg_offset_y = 0;
+
+	//birb textures, index, position and size controls
+	Texture[] birb_frames;
+	float frame = 0;
 	float birb_offset_x = -50;
 	float birb_offset_y = 0;
 	float birb_size = 1;
 	float birb_height;
 	float birb_width;
 
-	//background position controls
-	float bg_offset_x = 0;
-	float bg_offset_y = 0;
-
-	//physics
-	int gravity = 0;
+	//pipes textures, position, size and gap controls
+	Texture pipe_top;
+	Texture pipe_bottom;
+	float pipes_spawn_pos_x;
+	float pipes_pos_x;
+	float pipes_pos_y;
+	float pipes_height;
+	float pipes_width;
+	float pipes_size = 1;
+	float pipes_gap_size = 350;
 
 	//colliders
 	ShapeRenderer shapeRenderer;
 	Circle birb_collider;
 	Rectangle pipe_top_collider;
-	Rectangle pipe_bottom_collier;
-
-	//logic utils
-	boolean passed_pipes = false;
-	Random random;
+	Rectangle pipe_bottom_collider;
 
 	//At the beginning there was only darkness, and God above the sea of empty variables...
 	//And then, He has spoken: "Let there be light!"
@@ -66,9 +75,9 @@ public class Jogo extends ApplicationAdapter {
 		InitializeObjects();
 	}
 
-	//"Let there be things to see" ...And so things popped up at view and started to moving around.
+	//"Let there be things to see" ...And so things popped up at view and started to move.
 	//God saw it was good, so He wanted to play.
-	//"Let me touch it." ...And so He used His finger to hop things at will.
+	//"Let me touch it." ...And so He used His finger to hop a birb around.
 	@Override
 	public void render () {
 		batch.begin();
@@ -77,8 +86,14 @@ public class Jogo extends ApplicationAdapter {
 		BirbManager();
 		TouchListener();
 
+		//Rapidly God became bored, so He created challenges to make things more interesting...
+		//"I will call it 'Hell!" He said it so, and God thought it was a good name. Indeed...
+		PipesManager();
+		PointsManager();
+
 		batch.end();
 	}
+
 
 	@Override
 	public void dispose () {
@@ -86,17 +101,27 @@ public class Jogo extends ApplicationAdapter {
 	}
 
 	private void TouchListener() {
+		//makes birb hop at touch
 		boolean touched = Gdx.input.justTouched();
-		if(Gdx.input.justTouched()) gravity = -25;
+		if(Gdx.input.justTouched()) gravity = -hop_force;
 		if(birb_offset_y > 0 || touched) birb_offset_y -= gravity;
+	}
+
+	private void PointsManager() {
+		if(pipes_pos_x == birb_offset_x) {
+			points++;
+		}
+		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100);
 	}
 
 	private void BirbManager() {
 		//draw birb using offsets & gravity
 		batch.draw(birb_frames[(int) frame], birb_offset_x, birb_offset_y - gravity, birb_width, birb_height);
 
+		//gravity gradually increases
 		gravity++;
 
+		//sync birb anim frames
 		frame += Gdx.graphics.getDeltaTime() * 10;
 		if(frame > birb_frames.length)
 			frame = 0;
@@ -113,17 +138,38 @@ public class Jogo extends ApplicationAdapter {
 		if(bg_offset_x < -device_width) bg_offset_x = 0;
 	}
 
+	private void PipesManager() {
+
+		//draw top pipe
+		batch.draw(pipe_top,
+				pipes_pos_x,
+				pipes_pos_y + pipes_gap_size,
+				pipes_width,
+				pipes_height);
+
+		//draw bottom pipe
+		batch.draw(pipe_bottom,
+				pipes_pos_x,
+				pipes_pos_y - pipes_gap_size - pipes_height,
+				pipes_width,
+				pipes_height);
+
+		//move pipes
+		pipes_pos_x--;
+		if(pipes_pos_x < -pipes_width) pipes_pos_x = pipes_spawn_pos_x;
+	}
+
 	private void InitializeTextures() {
 		bg_img = new Texture("fundo.png");
 		birb_frames = new Texture[3];
 		birb_frames[0] = new Texture("passaro2.png");
 		birb_frames[1] = new Texture("passaro2.png");
 		birb_frames[2] = new Texture("passaro3.png");
+		pipe_top = new Texture("cano_topo_maior.png");
+		pipe_bottom = new Texture("cano_baixo_maior.png");
 	}
 
 	private void InitializeObjects() {
-		random = new Random();
-
 		//batch things to render
 		batch = new SpriteBatch();
 
@@ -139,6 +185,29 @@ public class Jogo extends ApplicationAdapter {
 		birb_offset_x= (device_width/2) + birb_offset_x;
 		birb_offset_y = device_height/2;
 
+		//utils & HUD
+		random = new Random();
+		points_display = new BitmapFont();
+		points_display.setColor(Color.GOLD);
+		points_display.getData().setScale(hud_size);
+
+		//colliders
+		shapeRenderer = new ShapeRenderer();
+		birb_collider = new Circle();
+		pipe_top_collider = new Rectangle();
+		pipe_bottom_collider = new Rectangle();
+
+		//set colliders sizes
+		pipes_width = pipe_top.getWidth() * pipes_size;
+		pipes_height = pipe_top.getHeight() * pipes_size;
+		birb_collider.setRadius(birb_width/2);
+		pipe_top_collider.setSize(pipes_width, pipes_size);
+		pipe_bottom_collider.setSize(pipes_width, pipes_size);
+
+		//set pipes initial position
+		pipes_spawn_pos_x = device_width + pipes_width;
+		pipes_pos_x = pipes_spawn_pos_x;
+		pipes_pos_y = device_height - (device_height/2);
 
 	}
 }
