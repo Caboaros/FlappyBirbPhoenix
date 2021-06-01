@@ -6,10 +6,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Jogo extends ApplicationAdapter {
-	//variaveis de texturas
+	//textures & btach variables
 	SpriteBatch batch;
 	Texture birb_img; //passaro
 	Texture bg_img; //backgorund
+
+	Texture[] birb_frames;
+	int frame = 0;
 
 	//device dimensions
 	private float device_width;
@@ -24,13 +27,19 @@ public class Jogo extends ApplicationAdapter {
 	int bg_offset_x = 0;
 	int bg_offset_y = 0;
 
+	//physics
+	float gravity = 0;
 
 	@Override
 	public void create () {
 		//initialize batch & textures
 		batch = new SpriteBatch();
 		bg_img = new Texture("fundo.png");
-		birb_img = new Texture("passaro1.png");
+		//birb_img = new Texture("passaro1.png");
+		birb_frames = new Texture[3];
+		birb_frames[0] = new Texture("passaro2.png");
+		birb_frames[1] = new Texture("passaro2.png");
+		birb_frames[2] = new Texture("passaro3.png");
 
 		//get actual device dimensions
 		device_width = Gdx.graphics.getWidth();
@@ -45,18 +54,25 @@ public class Jogo extends ApplicationAdapter {
 		BackgroundManager();
 		BirbManager();
 
+		//move bg
 		bg_offset_x--;
 
 		batch.end();
 	}
 
 	private void BirbManager() {
-		//draw birb
-		batch.draw(birb_img,
+		//draw birb using offsets & gravity
+		batch.draw(birb_frames[frame],
 				(device_width /2) + birb_offset_x,
-				device_height /2 + birb_offset_y,
-				birb_img.getWidth() * birb_size,
-				birb_img.getHeight() * birb_size);
+				(device_height /2) + birb_offset_y - gravity,
+				birb_frames[frame].getWidth() * birb_size,
+				birb_frames[frame].getHeight() * birb_size);
+
+		gravity++;
+		frame++;
+		if(frame >= birb_frames.length)
+			frame = 0;
+
 	}
 
 	private void BackgroundManager() {
