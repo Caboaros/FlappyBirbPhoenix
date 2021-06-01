@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
@@ -62,6 +63,7 @@ public class Jogo extends ApplicationAdapter {
 	float birb_size = 1.2f;
 	float birb_height;
 	float birb_width;
+	float birb_rot = 1;
 
 	//pipes textures, position, size and gap controls
 	Texture pipe_top;
@@ -228,7 +230,17 @@ public class Jogo extends ApplicationAdapter {
 		batch.draw(pipe_bottom, pipes_pos_x, pipe_bottom_pos_y, pipes_width, pipes_height);
 
 		//draw birb using position & gravity
-		batch.draw(birb_frames[(int) frame], birb_pos_x, birb_pos_y - gravity, birb_width, birb_height);
+		//added TextureRegion to get get acess to the rotation... it adds a lot of stuff...
+		batch.draw(new TextureRegion(birb_frames[(int) frame]),
+				birb_pos_x,
+				birb_pos_y - gravity,
+				birb_collider.radius,
+				birb_collider.radius,
+				birb_width,
+				birb_height,
+				1,
+				1,
+				birb_rot);
 
 		//draw points
 		points_display.draw(batch, String.valueOf(points), device_width / 2, device_height - 100);
@@ -347,12 +359,14 @@ public class Jogo extends ApplicationAdapter {
 		bg_offset_x = 0;
 		birb_pos_y = device_height / 2;
 		birb_pos_x = (device_width / 2) -50;
+		birb_rot = 1;
 		pipes_pos_x = pipes_spawn_pos_x;
 		endgame_ui_pos_y = -100;
 	}
 
 	private void HitAnim() {
 		birb_pos_x -= Gdx.graphics.getDeltaTime() * 500;
+		birb_rot -= Gdx.graphics.getDeltaTime() * 100;
 		gravity++;
 		birb_pos_y -= gravity;
 	}
