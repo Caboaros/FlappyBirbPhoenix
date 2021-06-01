@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.Random;
@@ -56,7 +57,8 @@ public class Jogo extends ApplicationAdapter {
 	Texture pipe_bottom;
 	float pipes_spawn_pos_x;
 	float pipes_pos_x;
-	float pipes_pos_y;
+	float pipe_top_pos_y;
+	float pipe_bottom_pos_y;
 	float pipes_height;
 	float pipes_width;
 	float pipes_size = 1f;
@@ -135,6 +137,18 @@ public class Jogo extends ApplicationAdapter {
 	}
 
 	private void CollisionDetection(){
+		//set colliders positions
+		float r = birb_collider.radius;
+		birb_collider.setPosition(birb_offset_x + r, birb_offset_y + r);
+		pipe_top_collider.setPosition(pipes_pos_x, pipe_top_pos_y);
+		pipe_bottom_collider.setPosition(pipe_bottom_pos_y, pipes_pos_x);
+
+		boolean hit_top = Intersector.overlaps(birb_collider, pipe_top_collider);
+		boolean hit_bottom = Intersector.overlaps(birb_collider, pipe_bottom_collider);
+
+		if (hit_top || hit_bottom || birb_offset_y <= 0){
+			Gdx.app.log("Log", "HIT");
+		}
 
 	}
 
@@ -162,19 +176,18 @@ public class Jogo extends ApplicationAdapter {
 	}
 
 	private void DrawPipes() {
-		//draw top pipe
-		pipes_pos_y = gap_center_pos_y + pipes_gap_size;
-		batch.draw(pipe_top, pipes_pos_x, pipes_pos_y, pipes_width, pipes_height);
+		//set pipes y position according to gap center
+		pipe_top_pos_y = gap_center_pos_y + pipes_gap_size;
+		pipe_bottom_pos_y = gap_center_pos_y - pipes_gap_size - pipes_height;
 
-		//draw bottom pipe
-		pipes_pos_y = gap_center_pos_y - pipes_gap_size - pipes_height;
-		batch.draw(pipe_bottom, pipes_pos_x, pipes_pos_y, pipes_width, pipes_height);
+		//draw pipes
+		batch.draw(pipe_top, pipes_pos_x, pipe_top_pos_y, pipes_width, pipes_height);
+		batch.draw(pipe_bottom, pipes_pos_x, pipe_bottom_pos_y, pipes_width, pipes_height);
 	}
 
 	private void DrawBirb() {
 		//draw birb using offsets & gravity
 		batch.draw(birb_frames[(int) frame], birb_offset_x, birb_offset_y - gravity, birb_width, birb_height);
-
 
 		//sync birb anim frames
 		frame += Gdx.graphics.getDeltaTime() * birb_anim_velocity;
@@ -225,9 +238,9 @@ public class Jogo extends ApplicationAdapter {
 		pipe_bottom_collider = new Rectangle();
 
 		//set colliders sizes
+		birb_collider.setRadius(birb_width/2);
 		pipes_width = pipe_top.getWidth() * pipes_size;
 		pipes_height = pipe_top.getHeight() * pipes_size;
-		birb_collider.setRadius(birb_width/2);
 		pipe_top_collider.setSize(pipes_width, pipes_size);
 		pipe_bottom_collider.setSize(pipes_width, pipes_size);
 
