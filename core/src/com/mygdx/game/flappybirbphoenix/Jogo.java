@@ -93,7 +93,7 @@ public class Jogo extends ApplicationAdapter {
 	//And then, He has spoken: "Let there be light!"
 	//So everything was initialized, became clear, and ready to rock!
 	@Override
-	public void create () {
+	public void create() {
 		InitializeTextures();
 		InitializeObjects();
 	}
@@ -101,33 +101,31 @@ public class Jogo extends ApplicationAdapter {
 	//"Let there be things to see" ...And so things popped up at view and started to move.
 	//God saw it was good, so He wanted to play.
 	@Override
-	public void render () {
+	public void render() {
 		DrawTextures();
 		GameStateManager();
 	}
 
 	@Override
-	public void dispose () {
+	public void dispose() {
 
 	}
 
-	private void GameStateManager(){
+	private void GameStateManager() {
 		//"Let me touch it." ...And so He used His finger to hop a birb around.
 		touched = Gdx.input.justTouched();
 
 		//"Let's get started!"
 		if (game_state == 0) {
-			if(touched) {
+			if (touched) {
 				game_state = 1;
 				//makes birb hop at touch
 				gravity = -hop_force;
 				hop_sound.play();
 			}
-		}
+		} else if (game_state == 1) {
 
-		else if(game_state == 1) {
-
-			if(touched) {
+			if (touched) {
 				//makes birb hop at touch
 				gravity = -hop_force;
 				hop_sound.play();
@@ -142,12 +140,11 @@ public class Jogo extends ApplicationAdapter {
 			gravity++;
 			birb_pos_y -= gravity;
 			//"I will call it 'Hell!" He said... and God thought it was a good name. Indeed...
-		}
-		else if (game_state == 2){
+		} else if (game_state == 2) {
 
 			if (points > highscore) highscore = points;
 			DrawUIGameOver();
-			if(touched) Retry();
+			if (touched) Retry();
 		}
 
 		PointsManager();
@@ -157,7 +154,7 @@ public class Jogo extends ApplicationAdapter {
 	private void BackgroundManager() {
 		//seamless loop scroll bg
 		bg_offset_x -= Gdx.graphics.getDeltaTime() * bg_velocity;
-		if(bg_offset_x < -device_width) bg_offset_x = 0;
+		if (bg_offset_x < -device_width) bg_offset_x = 0;
 	}
 
 	private void PipesManager() {
@@ -169,14 +166,14 @@ public class Jogo extends ApplicationAdapter {
 		pipes_pos_x -= Gdx.graphics.getDeltaTime() * pipes_velocity;
 
 		//if pipes are out of sight, loop back
-		if(pipes_pos_x < -pipes_width) {
+		if (pipes_pos_x < -pipes_width) {
 			pipes_pos_x = pipes_spawn_pos_x;
 			NewRandomPos();
 			passed_pipes = false;
 		}
 	}
 
-	private void CollisionDetection(){
+	private void CollisionDetection() {
 		//set colliders positions
 		float r = birb_collider.radius;
 		birb_collider.setPosition(birb_pos_x + r, birb_pos_y + r);
@@ -188,14 +185,16 @@ public class Jogo extends ApplicationAdapter {
 
 		//if any hit, end game state
 		if (hit_top || hit_bottom || birb_pos_y <= 0) {
-			game_state = 2;
-			hit_sound.play();
+			if(game_state == 1) {
+				game_state = 2;
+				hit_sound.play();
+			}
 		}
 	}
 
 	private void PointsManager() {
 		//passed trough pipes? **gain points!**
-		if(pipes_pos_x <= birb_pos_x && !passed_pipes) {
+		if (pipes_pos_x <= birb_pos_x && !passed_pipes) {
 			points++;
 			passed_pipes = true;
 			points_sound.play();
@@ -205,7 +204,7 @@ public class Jogo extends ApplicationAdapter {
 	private void BirbAnim() {
 		//sync birb anim frames
 		frame += Gdx.graphics.getDeltaTime() * birb_anim_velocity;
-		if(frame > birb_frames.length) frame = 0;
+		if (frame > birb_frames.length) frame = 0;
 	}
 
 	private void DrawTextures() {
@@ -223,33 +222,33 @@ public class Jogo extends ApplicationAdapter {
 		batch.draw(birb_frames[(int) frame], birb_pos_x, birb_pos_y - gravity, birb_width, birb_height);
 
 		//draw points
-		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100);
+		points_display.draw(batch, String.valueOf(points), device_width / 2, device_height - 100);
 
 		batch.end();
 	}
 
 	private void DrawUIGameOver() {
-		if(endgame_ui_pos_y < device_height/2)
+		if (endgame_ui_pos_y < device_height / 2)
 			endgame_ui_pos_y += Gdx.graphics.getDeltaTime() * hud_anim_velocity;
 
 		batch.begin();
 		//draw endgame UI
 		batch.draw(game_over_img,
-				device_width/2 - game_over_img.getWidth()/2 * hud_size/2,
+				device_width / 2 - game_over_img.getWidth() / 2 * hud_size / 2,
 				endgame_ui_pos_y,
-				game_over_img.getWidth() * hud_size/2,
-				game_over_img.getHeight() * hud_size/2);
+				game_over_img.getWidth() * hud_size / 2,
+				game_over_img.getHeight() * hud_size / 2);
 
 		//draw retry and highscore
 		String str_highscore = "BEST: " + String.valueOf(highscore);
 		highscore_display.draw(batch,
 				str_highscore,
-				device_width /2 - str_highscore.length() * hud_size * 4,
+				device_width / 2 - str_highscore.length() * hud_size * 4,
 				endgame_ui_pos_y - 120);
 		String str_retry = "TOUCH TO TRY AGAIN";
 		highscore_display.draw(batch,
 				str_retry,
-				device_width /2 - str_retry.length() * hud_size * 4,
+				device_width / 2 - str_retry.length() * hud_size * 4,
 				endgame_ui_pos_y - 60);
 
 		batch.end();
@@ -281,8 +280,8 @@ public class Jogo extends ApplicationAdapter {
 		birb_height = birb_frames[(int) frame].getHeight() * birb_size;
 
 		//set birb starting point
-		birb_pos_x = (device_width/2) + birb_pos_x;
-		birb_pos_y = device_height/2;
+		birb_pos_x = (device_width / 2) + birb_pos_x;
+		birb_pos_y = device_height / 2;
 
 		//utils & UI
 		random = new Random();
@@ -305,7 +304,7 @@ public class Jogo extends ApplicationAdapter {
 		pipe_bottom_collider = new Rectangle();
 
 		//set colliders sizes
-		birb_collider.setRadius(birb_width/2);
+		birb_collider.setRadius(birb_width / 2);
 		pipes_width = pipe_top.getWidth() * pipes_size;
 		pipes_height = pipe_top.getHeight() * pipes_size;
 		pipe_top_collider.setSize(pipes_width, pipes_height);
@@ -314,13 +313,13 @@ public class Jogo extends ApplicationAdapter {
 		//set pipes initial position
 		pipes_spawn_pos_x = device_width + pipes_width;
 		pipes_pos_x = pipes_spawn_pos_x;
-		borders = (int) device_height /4 + (int) pipes_gap_size;
+		borders = (int) device_height / 4 + (int) pipes_gap_size;
 		NewRandomPos();
 
 		//set sound files
-		hop_sound = Gdx.audio.newSound( Gdx.files.internal("som_asa.wav"));
-		hit_sound = Gdx.audio.newSound( Gdx.files.internal("som_batida.wav"));
-		points_sound = Gdx.audio.newSound( Gdx.files.internal("som_pontos.wav"));
+		hop_sound = Gdx.audio.newSound(Gdx.files.internal("som_asa.wav"));
+		hit_sound = Gdx.audio.newSound(Gdx.files.internal("som_batida.wav"));
+		points_sound = Gdx.audio.newSound(Gdx.files.internal("som_pontos.wav"));
 	}
 
 	private void NewRandomPos() {
@@ -328,38 +327,15 @@ public class Jogo extends ApplicationAdapter {
 		gap_center_pos_y = random.nextInt((int) device_height - borders * 2) * 2 + borders;
 	}
 
-	private void Retry(){
-		//ResetVariables();
-		//InitializeObjects();
-		//InitializeTextures();
+	private void Retry() {
 		game_state = 0;
 		points = 0;
 		gravity = 0;
-		bg_offset_x = (device_width/2) -50;
-		birb_pos_y = device_height/2;
+		//bg_offset_x = (device_width / 2) - 50;
+		birb_pos_y = device_height / 2;
 		pipes_pos_x = pipes_spawn_pos_x;
 		endgame_ui_pos_y = -100;
-
 	}
 
-
-	//MAYBE ONE DAY...
-/*	private void AdaptativeScreen() {
-		//set relative size of device's screen to adapt relative sized content when drawing stuff
-		float cubic_screen = device_width * device_height;
-		float cubic_bg = bg_img.getWidth() * bg_img.getHeight();
-		screen_relative_size = cubic_screen / cubic_bg;
-		Gdx.app.log("SCREEN RELATIVE SIZE: ", String.valueOf(screen_relative_size));
-		//set all screen relative sizes
-		hud_size *= screen_relative_size;
-		birb_size *= screen_relative_size;
-		pipes_size *= screen_relative_size;
-		//pipes_gap_size *= screen_relative_size;
-	}
-
-	private float Centralize(Texture tx, BitmapFont bmpf){
-		float pos = 0;
-
-		return pos;
-	}*/
 }
+
