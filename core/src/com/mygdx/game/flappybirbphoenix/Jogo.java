@@ -21,16 +21,22 @@ public class Jogo extends ApplicationAdapter {
 	//device's screen dimensions
 	float device_width;
 	float device_height;
+	float screen_relative_size = 1;
 	int borders;
 
-	//HUD points
+	//HUD
 	int points = 0;
+	int highscore = 0;
+	float hud_size = 1f;
+	int endgame_ui_pos_y = -200;
+	int hud_anim_velocity = 1600;
 	BitmapFont points_display;
-	int hud_size = 3;
+	BitmapFont retry_display;
+	BitmapFont highscore_display;
+	Texture game_over_img;
 
 	//logic utils
 	boolean passed_pipes = false;
-	boolean is_dead = true;
 	boolean touched = false;
 	int game_state = 0;
 	Random random;
@@ -51,7 +57,7 @@ public class Jogo extends ApplicationAdapter {
 	float frame = 0;
 	float birb_pos_x = -50;
 	float birb_pos_y = 0;
-	float birb_size = 1.2f;
+	float birb_size = 0.8f;
 	float birb_height;
 	float birb_width;
 
@@ -64,7 +70,7 @@ public class Jogo extends ApplicationAdapter {
 	float pipe_bottom_pos_y;
 	float pipes_height;
 	float pipes_width;
-	float pipes_size = 1f;
+	float pipes_size = 0.7f;
 	float pipes_gap_size = 200;
 	float gap_center_pos_y;
 	float pipes_velocity = 200;
@@ -74,6 +80,7 @@ public class Jogo extends ApplicationAdapter {
 	Circle birb_collider;
 	Rectangle pipe_top_collider;
 	Rectangle pipe_bottom_collider;
+
 	//endregion [Variables Setup]
 
 	//At the beginning there was only darkness, and God above the sea of empty variables...
@@ -97,9 +104,12 @@ public class Jogo extends ApplicationAdapter {
 	public void dispose () {
 
 	}
-	//"Let me touch it." ...And so He used His finger to hop a birb around.
+
 	private void GameStateManager(){
+		//"Let me touch it." ...And so He used His finger to hop a birb around.
 		touched = Gdx.input.justTouched();
+
+		//"Let's get started!"
 		if (touched) {
 			game_state = 1;
 			//makes birb hop at touch
@@ -118,8 +128,15 @@ public class Jogo extends ApplicationAdapter {
 		}
 		else if (game_state == 2){
 
+			if(endgame_ui_pos_y < device_height/2)
+				endgame_ui_pos_y += Gdx.graphics.getDeltaTime() * hud_anim_velocity;
+			if (points > highscore) highscore = points;
+			DrawUIEndGame();
+			if(touched) Retry();
 		}
+
 		PointsManager();
+		BirbAnim();
 	}
 
 	private void BackgroundManager() {
@@ -154,11 +171,8 @@ public class Jogo extends ApplicationAdapter {
 		boolean hit_top = Intersector.overlaps(birb_collider, pipe_top_collider);
 		boolean hit_bottom = Intersector.overlaps(birb_collider, pipe_bottom_collider);
 
-		if (hit_top || hit_bottom || birb_pos_y <= 0){
-			Gdx.app.log("Log", "HIT");
-			Die();
-		}
-
+		//if any hit, end game state
+		if (hit_top || hit_bottom || birb_pos_y <= 0) game_state = 2;
 	}
 
 	private void PointsManager() {
@@ -167,11 +181,12 @@ public class Jogo extends ApplicationAdapter {
 			points++;
 			passed_pipes = true;
 		}
+	}
 
+	private void BirbAnim() {
 		//sync birb anim frames
 		frame += Gdx.graphics.getDeltaTime() * birb_anim_velocity;
-		if(frame > birb_frames.length)
-			frame = 0;
+		if(frame > birb_frames.length) frame = 0;
 	}
 
 	private void DrawTextures() {
@@ -185,11 +200,35 @@ public class Jogo extends ApplicationAdapter {
 		batch.draw(pipe_top, pipes_pos_x, pipe_top_pos_y, pipes_width, pipes_height);
 		batch.draw(pipe_bottom, pipes_pos_x, pipe_bottom_pos_y, pipes_width, pipes_height);
 
-		//draw birb using offsets & gravity
+		//draw birb using position & gravity
 		batch.draw(birb_frames[(int) frame], birb_pos_x, birb_pos_y - gravity, birb_width, birb_height);
 
 		//draw points
-		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100);
+		points_display.draw(batch, String.valueOf(points), device_width /2, device_height - 100 *screen_relative_size);
+
+		batch.end();
+	}
+
+	private void DrawUIEndGame() {
+		batch.begin();
+		//draw endgame UI
+		batch.draw(game_over_img,
+				device_width/2 - game_over_img.getWidth()/2 * screen_relative_size,
+				endgame_ui_pos_y,
+				game_over_img.getWidth() * screen_relative_size,
+				game_over_img.getHeight() * screen_relative_size);
+
+		//draw retry and highscore
+		String str_highscore = "Highscore: " + String.valueOf(highscore);
+		highscore_display.draw(batch,
+				str_highscore,
+				device_width /2 - str_highscore.length() * 6 * screen_relative_size,
+				endgame_ui_pos_y - 60);
+		String str_retry = "Retry?";
+		highscore_display.draw(batch,
+				str_retry,
+				device_width /2 - str_retry.length() * 6 * screen_relative_size,
+				endgame_ui_pos_y - 120);
 
 		batch.end();
 	}
@@ -202,6 +241,8 @@ public class Jogo extends ApplicationAdapter {
 		birb_frames[2] = new Texture("passaro3.png");
 		pipe_top = new Texture("cano_topo_maior.png");
 		pipe_bottom = new Texture("cano_baixo_maior.png");
+		game_over_img = new Texture("game_over.png");
+
 	}
 
 	private void InitializeObjects() {
@@ -211,6 +252,17 @@ public class Jogo extends ApplicationAdapter {
 		//get device's screen dimensions
 		device_width = Gdx.graphics.getWidth();
 		device_height = Gdx.graphics.getHeight();
+
+		//set relative size of device's screen to adapt relative sized content when drawing stuff
+		float cubic_screen = device_width * device_height;
+		float cubic_bg = bg_img.getWidth() * bg_img.getHeight();
+		screen_relative_size = cubic_screen / cubic_bg;
+		Gdx.app.log("SCREEN RELATIVE SIZE: ", String.valueOf(screen_relative_size));
+		//set all screen relative sizes
+		hud_size *= screen_relative_size;
+		birb_size *= screen_relative_size;
+		pipes_size *= screen_relative_size;
+		//pipes_gap_size *= screen_relative_size;
 
 		//set birb texture size
 		birb_width = birb_frames[(int) frame].getWidth() * birb_size;
@@ -224,7 +276,15 @@ public class Jogo extends ApplicationAdapter {
 		random = new Random();
 		points_display = new BitmapFont();
 		points_display.setColor(Color.GOLD);
-		points_display.getData().setScale(hud_size);
+		points_display.getData().setScale(hud_size * screen_relative_size);
+
+		retry_display = new BitmapFont();
+		retry_display.setColor(Color.GOLD);
+		retry_display.getData().setScale(hud_size * screen_relative_size);
+
+		highscore_display = new BitmapFont();
+		highscore_display.setColor(Color.GOLD);
+		highscore_display.getData().setScale(hud_size * screen_relative_size);
 
 		//colliders
 		shapeRenderer = new ShapeRenderer();
@@ -251,7 +311,39 @@ public class Jogo extends ApplicationAdapter {
 		gap_center_pos_y = random.nextInt((int) device_height - borders * 2) * 2 + borders;
 	}
 
-	private void Die(){
-		game_state = 0;
+	private void Retry(){
+		ResetVariables();
+		InitializeObjects();
+		InitializeTextures();
+		ResetVariables();
+
 	}
+
+	private void ResetVariables() {
+		points = 0;
+		endgame_ui_pos_y = -200;
+		hud_anim_velocity = 1200;
+		passed_pipes = false;
+		touched = false;
+		game_state = 0;
+		gravity = 0;
+		hop_force = 20;
+		bg_offset_x = 0;
+		bg_offset_y = 0;
+		bg_velocity = 100;
+		birb_anim_velocity = 15;
+		frame = 0;
+		birb_pos_x = -50;
+		birb_pos_y = 0;
+		birb_size = 0.8f;
+		pipes_size = 0.7f;
+		pipes_gap_size = 200;
+		pipes_velocity = 200;
+	}
+
+//	private float Centralize(Texture tx, BitmapFont bmpf){
+//		float pos = 0;
+//
+//		return pos;
+//	}
 }
